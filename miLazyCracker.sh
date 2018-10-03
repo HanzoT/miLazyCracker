@@ -73,14 +73,21 @@ while [ $keepTrying -eq 1 ]; do
             #echo ${arr[2]}
             #echo ${arr[3]}
             #echo ${arr[4]}
-
-            knownKey=${arr[0]}
+		
+	    temp=($(echo ${arr[0]}|fold -w2))
+            knownKey=${temp[5]}${temp[4]}${temp[3]}${temp[2]}${temp[1]}${temp[0]}
             knownSectorNum=${arr[1]}
             knownKeyLetter=${arr[2]}
             unknownSectorNum=${arr[3]}
             unknownKeyLetter=${arr[4]}
             knownBlockNum=$((knownSectorNum * 4))
             unknownBlockNum=$((unknownSectorNum * 4))
+            if [ "$knownSectorNum" -gt 31 ]; then
+                knownBlockNum=$((128+((knownSectorNum-32)*16)))
+            fi
+            if [ "$unknownSectorNum" -gt 31 ]; then
+                unknownBlockNum=$((128+((unknownSectorNum-32)*16)))
+            fi
             echo "Trying HardNested Attack..."
             mycmd=(libnfc_crypto1_crack "$knownKey" "$knownBlockNum" "$knownKeyLetter" "$unknownBlockNum" "$unknownKeyLetter" "$TMPFILE_FND")
             echo "${mycmd[@]}"
@@ -112,7 +119,7 @@ while [ $keepTrying -eq 1 ]; do
     fi
 done
 
-rm -f "$TMPFILE_UNK" "$TMPFILE_FND" "0x${myUID}_"*".txt"
+rm -f "$TMPFILE_UNK" "0x${myUID}_"*".txt"
 if [ $mfocResult -eq 0 ]; then
     echo -e "\n\nDump left in: $TMPFILE_MFD"
     if ask "Do you want clone the card? Place card on reader now and press Y"; then
